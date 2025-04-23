@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSleek - E-commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Configure Tailwind for dark mode using the 'class' strategy
+        tailwind.config = {
+          darkMode: 'class', // Enable class-based dark mode
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+              },
+              // Add any other theme customizations here
+            }
+          }
+        }
+    </script>
+    <style>
+        /* Custom Styles */
+        html {
+             scroll-behavior: smooth;
+        }
+        /* Base body styles - Background colors are now handled directly on the body tag */
+        body {
+            font-family: 'Inter', sans-serif;
+            opacity: 0;
+            transition: opacity 0.7s ease-in-out, background-color 0.3s ease-in-out; /* Keep transition */
+        }
+        body.loaded {
+            opacity: 1;
+        }
+        /* Ensure images cover their container */
+        .product-card img, #product-detail-image, .cart-item-img {
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+        }
+        .cart-item-img {
+            width: 80px; /* Fixed width for cart images */
+            height: 80px;
+            border-radius: 4px; /* Slightly rounded */
+        }
+        #product-detail-image {
+             aspect-ratio: 4 / 3;
+             max-height: 500px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Light mode track */
+            @apply dark:bg-gray-700; /* Dark mode track */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* gray-300 - Light mode thumb */
+             @apply dark:bg-gray-500; /* Dark mode thumb */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* gray-400 - Light mode hover */
+             @apply dark:bg-gray-400; /* Dark mode hover */
+        }
+
+        /* Navigation link hover effect */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+            @apply text-gray-600 dark:text-gray-300; /* Base colors */
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3b82f6; /* blue-500 */
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover {
+             @apply text-blue-500 dark:text-blue-400;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link.active {
+            @apply text-blue-500 dark:text-blue-400 font-semibold; /* Style for active link */
+        }
+        .nav-link.active::after {
+            width: 60%;
+            background-color: #3b82f6; /* blue-500 */
+            @apply dark:bg-blue-400;
+        }
+
+
+        /* Button styles */
+        .add-to-cart-btn, .checkout-btn, .action-btn {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .add-to-cart-btn:hover, .checkout-btn:hover, .action-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1); /* Slightly brighten on hover */
+        }
+        .add-to-cart-btn:active, .checkout-btn:active, .action-btn:active {
+            transform: translateY(0px);
+        }
+
+        /* Message box */
+        #message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(51, 65, 85, 0.9); /* slate-700 with opacity */
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
+            transform: translateX(-50%) translateY(20px);
+            /* Dark mode specific styling for message box */
+            @apply dark:bg-opacity-90 dark:bg-gray-200 dark:text-gray-900;
+        }
+        #message-box.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+        /* Section transition */
+        .page-section {
+            transition: opacity 0.4s ease-in-out, max-height 0.5s ease-in-out;
+            overflow: hidden;
+        }
+        .page-section.hidden {
+             opacity: 0;
+             max-height: 0;
+             pointer-events: none;
+        }
+        .page-section:not(.hidden) {
+             opacity: 1;
+             max-height: 10000px; /* Use a large value */
+        }
+
+        /* Option button styles */
+        .option-btn {
+            border: 1px solid #d1d5db; /* gray-300 */
+            padding: 6px 12px; border-radius: 6px; cursor: pointer;
+            transition: all 0.2s ease; font-size: 0.875rem;
+            @apply text-gray-700 dark:border-gray-600 dark:text-gray-300; /* Added light mode text color */
+        }
+        .option-btn:hover {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+            @apply dark:border-blue-400 dark:bg-gray-700 dark:text-gray-100;
+        }
+        .option-btn.selected {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #3b82f6; /* blue-500 */
+            color: white; font-weight: 500;
+            @apply dark:border-blue-400 dark:bg-blue-500 dark:text-white;
+        }
+
+        /* Cart item styling */
+        .cart-item + .cart-item {
+            border-top: 1px solid #e5e7eb; /* gray-200 */
+            @apply dark:border-gray-700;
+        }
+
+        /* Dark mode toggle button specific styles */
+        #dark-mode-toggle svg {
+            transition: transform 0.3s ease;
+        }
+        .dark #dark-mode-toggle .sun-icon { display: none; }
+        .dark #dark-mode-toggle .moon-icon { display: block; }
+        html:not(.dark) #dark-mode-toggle .sun-icon { display: block; }
+        html:not(.dark) #dark-mode-toggle .moon-icon { display: none; }
+
+    </style>
+</head>
+<body class="antialiased bg-gray-50 dark:bg-gray-900">
+
+    <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="#" id="logo-link" class="nav-trigger text-2xl font-bold text-gray-800 dark:text-white" data-target="home">
+                Shop<span class="text-blue-500 dark:text-blue-400">Sleek</span>
+            </a>
+
+            <div class="hidden md:flex space-x-6">
+                <a href="#" id="home-link-desktop" class="nav-link nav-trigger active" data-target="home">Home</a>
+                <a href="#products-section" id="shop-link-desktop" class="nav-link nav-trigger" data-target="shop">Shop</a>
+                <a href="#" id="deals-link-desktop" class="nav-link nav-trigger" data-target="deals">Deals</a>
+                <a href="#" id="about-link-desktop" class="nav-link nav-trigger" data-target="about">About</a>
+                <a href="#" id="contact-link-desktop" class="nav-link nav-trigger" data-target="contact">Contact</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button id="cart-button" class="nav-trigger relative text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition duration-300" data-target="cart">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /> </svg>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center pointer-events-none">0</span>
+                </button>
+
+                <button id="dark-mode-toggle" class="text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition duration-300" aria-label="Toggle dark mode">
+                    <svg class="sun-icon h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.485-15.586l-.707.707M4.222 19.778l-.707.707M21 12h-1M4 12H3m15.586 8.485l-.707-.707M4.929 4.222l-.707-.707M12 6a6 6 0 100 12 6 6 0 000-12z" />
+                    </svg>
+                    <svg class="moon-icon h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /> </svg>
+                </button>
+            </div>
+        </nav>
+
+        <div id="mobile-menu" class="md:hidden hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+            <a href="#" id="home-link-mobile" class="block px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 dark:hover:text-blue-400 nav-trigger" data-target="home">Home</a>
+            <a href="#products-section" id="shop-link-mobile" class="block px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 dark:hover:text-blue-400 nav-trigger" data-target="shop">Shop</a>
+            <a href="#" id="deals-link-mobile" class="block px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 dark:hover:text-blue-400 nav-trigger" data-target="deals">Deals</a>
+            <a href="#" id="about-link-mobile" class="block px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 dark:hover:text-blue-400 nav-trigger" data-target="about">About</a>
+            <a href="#" id="contact-link-mobile" class="block px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-500 dark:hover:text-blue-400 nav-trigger" data-target="contact">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <div id="home-view" class="page-section">
+            <section id="hero-section" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-lg p-8 md:p-12 mb-12 text-center dark:from-blue-600 dark:to-indigo-700">
+                <h1 class="text-3xl md:text-5xl font-bold mb-4">Discover Amazing Products</h1>
+                <p class="text-lg md:text-xl mb-6">Shop the latest trends with unbeatable prices.</p>
+                <a href="#products-section" class="nav-trigger bg-white text-blue-600 dark:bg-gray-100 dark:text-blue-700 font-semibold py-2 px-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-300 transition duration-300 inline-block" data-target="shop">Shop Now</a>
+            </section>
+
+            <section id="products-section">
+                <h2 class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6 md:mb-8">Featured Products</h2>
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                    </div>
+            </section>
+        </div>
+
+        <section id="product-detail-section" class="page-section hidden">
+             <button id="back-to-shop-btn" class="nav-trigger mb-6 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900" data-target="shop">
+                <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"> <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /> </svg>
+                Back to Shop
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex items-center justify-center">
+                    <img id="product-detail-image" src="" alt="Product Image" class="w-full h-auto rounded-md object-cover">
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span id="product-detail-category" class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Category</span>
+                    <h1 id="product-detail-name" class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">Product Name</h1>
+                    <p id="product-detail-description" class="text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">Loading description...</p>
+                    <p id="product-detail-price" class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">$0.00</p>
+                    <div class="mb-6 space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color:</label>
+                            <div id="product-detail-colors" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Size:</label>
+                            <div id="product-detail-sizes" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                    <button id="detail-add-to-cart-btn" data-product-id="" class="add-to-cart-btn w-full bg-blue-500 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-lg"> Add to Cart </button>
+                </div>
+            </div>
+            <div class="mt-16">
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-6">You Might Also Like</h2>
+                <div id="similar-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+                    </div>
+            </div>
+        </section>
+
+        <section id="cart-section" class="page-section hidden">
+            <h2 class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6 md:mb-8">Shopping Cart</h2>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                <div id="cart-items-container" class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <p id="empty-cart-message" class="p-6 text-center text-gray-500 dark:text-gray-400">Your cart is empty.</p>
+                    </div>
+                <div id="cart-summary" class="bg-gray-50 dark:bg-gray-700 p-6 border-t border-gray-200 dark:border-gray-600 hidden">
+                     <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-medium text-gray-700 dark:text-gray-200">Subtotal:</span>
+                        <span id="cart-subtotal" class="text-lg font-bold text-gray-900 dark:text-white">$0.00</span>
+                    </div>
+                     <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-1">
+                        <span>Shipping:</span>
+                        <span>Calculated at checkout</span>
+                    </div>
+                     <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        <span>Taxes:</span>
+                        <span>Calculated at checkout</span>
+                    </div>
+                     <div class="flex justify-between items-center border-t pt-4 mt-4 border-gray-300 dark:border-gray-500">
+                        <span class="text-xl font-semibold text-gray-800 dark:text-gray-100">Total:</span>
+                        <span id="cart-total" class="text-xl font-bold text-blue-600 dark:text-blue-400">$0.00</span>
+                    </div>
+                    <button class="checkout-btn w-full mt-6 bg-green-500 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-lg">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="deals-section" class="page-section hidden">
+            <h2 class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6 md:mb-8">Today's Deals</h2>
+             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+                 <p class="text-gray-600 dark:text-gray-300 text-lg">Check back soon for amazing deals!</p>
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-blue-400 dark:text-blue-500 mt-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                 </svg>
+             </div>
+         </section>
+
+        <section id="about-section" class="page-section hidden">
+            <h2 class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6 md:mb-8">About ShopSleek</h2>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 space-y-4 text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p>Welcome to ShopSleek, your number one source for all things trendy and high-quality. We're dedicated to giving you the very best products, with a focus on dependability, customer service, and uniqueness.</p>
+                <p>Founded in 2025 by a team of passionate entrepreneurs, ShopSleek has come a long way from its beginnings. When we first started out, our passion for finding and curating exceptional products drove us to do intense research, and gave us the impetus to turn hard work and inspiration into a booming online store.</p>
+                <p>We now serve customers all over the world, and are thrilled to be a part of the fair-trade wing of the e-commerce industry.</p>
+                <p>We hope you enjoy our products as much as we enjoy offering them to you. If you have any questions or comments, please don't hesitate to contact us.</p>
+                <p class="font-semibold mt-6 dark:text-gray-200">Sincerely,</p>
+                <p>The ShopSleek Team</p>
+            </div>
+        </section>
+
+        <section id="contact-section" class="page-section hidden">
+            <h2 class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6 md:mb-8">Contact Us</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 space-y-4">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Get in Touch</h3>
+                    <p class="text-gray-700 dark:text-gray-300">Have questions? We'd love to hear from you. Reach out to us through any of the methods below.</p>
+                    <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor"> <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /> </svg>
+                         <span>123 Commerce St, Web City, WC 10001</span>
+                    </div>
+                     <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor"> <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /> <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /> </svg>
+                         <a href="mailto:support@shopsleek.com" class="hover:text-blue-600 dark:hover:text-blue-400">support@shopsleek.com</a>
+                    </div>
+                     <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor"> <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" /> </svg>
+                         <span>(123) 456-7890</span>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Send Us a Message</h3>
+                     <form action="#" method="POST" class="space-y-4">
+                         <div>
+                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                             <input type="text" name="name" id="name" autocomplete="name" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 sm:text-sm" placeholder="Your Name">
+                         </div>
+                         <div>
+                             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                              <input type="email" name="email" id="email" autocomplete="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 sm:text-sm" placeholder="you@example.com">
+                         </div>
+                         <div>
+                             <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+                              <textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 sm:text-sm" placeholder="Your message..."></textarea>
+                         </div>
+                         <div>
+                             <button type="submit" class="action-btn w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                                 Send Message
+                             </button>
+                         </div>
+                     </form>
+                 </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 dark:bg-gray-900 text-gray-300 dark:text-gray-400 mt-16 transition-colors duration-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-white dark:text-gray-200 mb-3">ShopSleek</h3>
+                    <p class="text-sm">Your destination for the latest and greatest products. We offer quality items with fast shipping and excellent customer service.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-white dark:text-gray-200 mb-3">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="nav-trigger hover:text-white dark:hover:text-gray-200 transition duration-300" data-target="about">About Us</a></li>
+                        <li><a href="#" class="nav-trigger hover:text-white dark:hover:text-gray-200 transition duration-300" data-target="contact">Contact Us</a></li>
+                        <li><a href="#products-section" class="nav-trigger hover:text-white dark:hover:text-gray-200 transition duration-300" data-target="shop">Shop</a></li>
+                        <li><a href="#" class="hover:text-white dark:hover:text-gray-200 transition duration-300">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white dark:hover:text-gray-200 transition duration-300">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-white dark:text-gray-200 mb-3">Contact Us</h3>
+                    <p class="text-sm mb-2">123 Commerce St, Web City</p>
+                    <p class="text-sm mb-2">Email: support@shopsleek.com</p>
+                    <p class="text-sm">Phone: (123) 456-7890</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 dark:border-gray-600 pt-6 text-center text-sm">
+                &copy; 2025 ShopSleek. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <div id="message-box">Item added to cart!</div>
+
+    <script>
+        // --- Product Data (Same as before) ---
+        const products = [
+             { id: 1, name: "Wireless Headphones", price: 79.99, image: "headphones-wireless", category: "Electronics", color: "A78BFA", textColor: "FFFFFF", description: "Immersive sound quality with noise cancellation. Long-lasting battery life for all-day listening.", options: { colors: ["Purple", "Black", "White"] } },
+             { id: 2, name: "Smart Watch Series 7", price: 349.00, image: "smart-watch", category: "Electronics", color: "3B82F6", textColor: "FFFFFF", description: "Track your fitness, stay connected, and monitor your health with the latest smart watch technology.", options: { colors: ["Blue", "Midnight", "Starlight"], sizes: ["41mm", "45mm"] } },
+             { id: 3, name: "Organic Cotton T-Shirt", price: 24.50, image: "t-shirt-cotton", category: "Apparel", color: "10B981", textColor: "FFFFFF", description: "Soft, breathable, and eco-friendly. A comfortable classic for everyday wear.", options: { colors: ["Green", "Navy", "Gray"], sizes: ["S", "M", "L", "XL"] } },
+             { id: 4, name: "Running Shoes", price: 119.95, image: "running-shoes", category: "Footwear", color: "F59E0B", textColor: "FFFFFF", description: "Lightweight and responsive shoes designed for optimal performance and comfort during your runs.", options: { colors: ["Orange/Black", "Blue/White", "All Black"], sizes: ["8", "9", "10", "11", "12"] } },
+             { id: 5, name: "Stainless Steel Water Bottle", price: 18.00, image: "water-bottle", category: "Home Goods", color: "6B7280", textColor: "FFFFFF", description: "Keep your drinks cold or hot for hours. Durable and leak-proof design, perfect for on-the-go hydration.", options: { colors: ["Steel", "Matte Black", "Ocean Blue"] } },
+             { id: 6, name: "Laptop Backpack", price: 55.00, image: "laptop-backpack", category: "Accessories", color: "EF4444", textColor: "FFFFFF", description: "Spacious and protective backpack with multiple compartments for your laptop, accessories, and essentials.", options: { colors: ["Red", "Gray", "Black"] } },
+             { id: 7, name: "Bluetooth Speaker", price: 45.99, image: "bt-speaker", category: "Electronics", color: "EC4899", textColor: "FFFFFF", description: "Portable speaker with rich sound and deep bass. Connect wirelessly via Bluetooth.", options: { colors: ["Pink", "Teal", "Graphite"] } },
+             { id: 8, name: "Yoga Mat Premium", price: 32.00, image: "yoga-mat", category: "Sports", color: "8B5CF6", textColor: "FFFFFF", description: "Non-slip, cushioned mat providing excellent grip and comfort for your yoga practice.", options: { colors: ["Violet", "Forest Green", "Sky Blue"] } },
+             { id: 9, name: "Coffee Maker Drip", price: 65.50, image: "coffee-maker", category: "Home Goods", color: "D97706", textColor: "FFFFFF", description: "Brew delicious coffee easily with this programmable drip coffee maker. Features a reusable filter.", options: {} },
+             { id: 10, name: "Gaming Mouse RGB", price: 39.99, image: "gaming-mouse", category: "Electronics", color: "0EA5E9", textColor: "FFFFFF", description: "High-precision gaming mouse with customizable RGB lighting and programmable buttons.", options: {} },
+             { id: 11, name: "Denim Jeans Slim Fit", price: 68.00, image: "denim-jeans", category: "Apparel", color: "3B82F6", textColor: "FFFFFF", description: "Classic slim fit jeans made from durable denim with a touch of stretch for comfort.", options: { colors: ["Dark Wash", "Light Wash", "Black"], sizes: ["30W/32L", "32W/32L", "34W/32L", "36W/34L"] } },
+             { id: 12, name: "Sunglasses Aviator", price: 29.95, image: "sunglasses", category: "Accessories", color: "1F2937", textColor: "FFFFFF", description: "Timeless aviator sunglasses with UV protection. Lightweight frame for comfortable wear.", options: { colors: ["Gold/Green", "Black/Gray", "Silver/Blue"] } },
+             { id: 13, name: "Electric Toothbrush", price: 89.99, image: "e-toothbrush", category: "Personal Care", color: "22C55E", textColor: "FFFFFF", description: "Advanced cleaning technology for healthier gums and brighter teeth. Multiple brushing modes.", options: {} },
+             { id: 14, name: "Air Fryer XL", price: 109.00, image: "air-fryer", category: "Home Goods", color: "F97316", textColor: "FFFFFF", description: "Enjoy crispy and delicious food with less oil. Large capacity suitable for families.", options: {} },
+             { id: 15, name: "Leather Wallet", price: 35.00, image: "leather-wallet", category: "Accessories", color: "A16207", textColor: "FFFFFF", description: "Genuine leather wallet with multiple card slots and a bill compartment. Slim and stylish.", options: { colors: ["Brown", "Black"] } },
+             { id: 16, name: "Portable Charger 10000mAh", price: 25.99, image: "power-bank", category: "Electronics", color: "4F46E5", textColor: "FFFFFF", description: "Compact power bank to charge your devices on the go. Features fast charging capabilities.", options: {} },
+             { id: 17, name: "Hoodie Pullover", price: 48.50, image: "hoodie", category: "Apparel", color: "7C3AED", textColor: "FFFFFF", description: "Soft fleece hoodie perfect for layering or casual wear. Features a kangaroo pocket.", options: { colors: ["Purple", "Heather Gray", "Navy"], sizes: ["S", "M", "L", "XL", "XXL"] } },
+             { id: 18, name: "Hiking Boots Waterproof", price: 135.00, image: "hiking-boots", category: "Footwear", color: "CA8A04", textColor: "FFFFFF", description: "Durable and waterproof boots designed for traction and support on challenging trails.", options: { colors: ["Brown", "Gray/Black"], sizes: ["8", "9", "10", "11", "12", "13"] } },
+             { id: 19, name: "Desk Lamp LED", price: 22.99, image: "desk-lamp", category: "Home Goods", color: "64748B", textColor: "FFFFFF", description: "Adjustable LED desk lamp with multiple brightness levels. Energy-efficient and eye-caring.", options: {} },
+             { id: 20, name: "Fitness Tracker Band", price: 49.95, image: "fitness-tracker", category: "Electronics", color: "DB2777", textColor: "FFFFFF", description: "Monitor your steps, heart rate, sleep, and workouts with this sleek fitness tracker.", options: { colors: ["Magenta", "Black", "Blue"] } },
+             { id: 21, name: "Travel Mug Insulated", price: 19.99, image: "travel-mug", category: "Home Goods", color: "059669", textColor: "FFFFFF", description: "Double-wall insulated mug to keep your beverages at the desired temperature. Spill-resistant lid.", options: { colors: ["Emerald", "Graphite", "White"] } },
+             { id: 22, name: "Beanie Hat Winter", price: 15.00, image: "beanie-hat", category: "Accessories", color: "DC2626", textColor: "FFFFFF", description: "Warm and comfortable knit beanie hat, perfect for cold weather.", options: { colors: ["Red", "Charcoal", "Olive"] } },
+             { id: 23, name: "Mechanical Keyboard", price: 95.00, image: "mech-keyboard", category: "Electronics", color: "5B21B6", textColor: "FFFFFF", description: "Tactile mechanical keyboard for a satisfying typing experience. Durable build with backlighting.", options: { switchType: ["Blue", "Brown", "Red"] } },
+             { id: 24, name: "Duffle Bag Gym", price: 42.00, image: "duffle-bag", category: "Sports", color: "047857", textColor: "FFFFFF", description: "Spacious duffle bag with separate compartments for shoes and wet clothes. Ideal for the gym or travel.", options: { colors: ["Green", "Black", "Gray"] } },
+             { id: 25, name: "Casual Sneakers", price: 75.00, image: "sneakers", category: "Footwear", color: "BE123C", textColor: "FFFFFF", description: "Stylish and comfortable sneakers for everyday wear. Versatile design pairs well with many outfits.", options: { colors: ["Crimson", "White", "Navy"], sizes: ["7", "8", "9", "10", "11", "12"] } },
+             { id: 26, name: "Silk Scarf", price: 38.00, image: "silk-scarf", category: "Accessories", color: "9D174D", textColor: "FFFFFF", description: "Luxurious 100% silk scarf with a beautiful print. Adds an elegant touch to any outfit.", options: { pattern: ["Floral", "Paisley", "Geometric"] } },
+             { id: 27, name: "Action Camera 4K", price: 199.99, image: "action-cam", category: "Electronics", color: "1D4ED8", textColor: "FFFFFF", description: "Capture stunning 4K video and photos. Waterproof and durable for all your adventures.", options: {} },
+             { id: 28, name: "Wall Clock Modern", price: 33.50, image: "wall-clock", category: "Home Goods", color: "9CA3AF", textColor: "FFFFFF", description: "Minimalist modern wall clock with silent movement. Easy to read and stylish.", options: {} },
+             { id: 29, name: "Polo Shirt Classic", price: 30.00, image: "polo-shirt", category: "Apparel", color: "06B6D4", textColor: "FFFFFF", description: "Classic fit polo shirt made from breathable pique cotton. A timeless wardrobe staple.", options: { colors: ["Cyan", "White", "Black", "Red"], sizes: ["S", "M", "L", "XL"] } },
+             { id: 30, name: "Resistance Bands Set", price: 21.99, image: "res-bands", category: "Sports", color: "F59E0B", textColor: "FFFFFF", description: "Set of resistance bands with varying levels for versatile strength training and workouts.", options: {} },
+             { id: 31, name: "External SSD 1TB", price: 129.99, image: "external-ssd", category: "Electronics", color: "6D28D9", textColor: "FFFFFF", description: "Fast and reliable external solid-state drive for extra storage and quick file transfers.", options: {} },
+             { id: 32, name: "Chef Knife 8-Inch", price: 59.00, image: "chef-knife", category: "Home Goods", color: "4B5563", textColor: "FFFFFF", description: "High-carbon stainless steel chef's knife. Sharp, durable, and well-balanced for all kitchen tasks.", options: {} },
+         ];
+
+        // --- DOM Elements ---
+        const productGrid = document.getElementById('product-grid');
+        const cartCountElement = document.getElementById('cart-count');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const messageBox = document.getElementById('message-box');
+        const darkModeToggle = document.getElementById('dark-mode-toggle'); // Dark mode button
+        const htmlElement = document.documentElement; // Reference to <html> element
+
+        // Page Sections / Views
+        const pageSections = {
+            home: document.getElementById('home-view'),
+            detail: document.getElementById('product-detail-section'),
+            cart: document.getElementById('cart-section'),
+            deals: document.getElementById('deals-section'),
+            about: document.getElementById('about-section'),
+            contact: document.getElementById('contact-section'),
+        };
+        pageSections.shop = pageSections.home; // Alias for 'shop' view
+
+        // Detail View Elements
+        const backToShopBtn = document.getElementById('back-to-shop-btn');
+        const detailImage = document.getElementById('product-detail-image');
+        const detailCategory = document.getElementById('product-detail-category');
+        const detailName = document.getElementById('product-detail-name');
+        const detailDescription = document.getElementById('product-detail-description');
+        const detailPrice = document.getElementById('product-detail-price');
+        const detailColorsContainer = document.getElementById('product-detail-colors');
+        const detailSizesContainer = document.getElementById('product-detail-sizes');
+        const detailAddToCartBtn = document.getElementById('detail-add-to-cart-btn');
+        const similarProductsGrid = document.getElementById('similar-products-grid');
+
+        // Cart View Elements
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+        const cartSummary = document.getElementById('cart-summary');
+        const cartSubtotalElement = document.getElementById('cart-subtotal');
+        const cartTotalElement = document.getElementById('cart-total');
+
+        // Navigation Links
+        const navTriggers = document.querySelectorAll('.nav-trigger');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // --- State ---
+        let cartItems = []; // Array to hold { productId, quantity }
+        let currentView = 'home';
+
+        // --- Utility Functions ---
+
+        /** Displays a short message to the user. */
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.classList.add('show');
+            setTimeout(() => { messageBox.classList.remove('show'); }, 3000);
+        }
+
+        /** Generates placeholder image URL. */
+        function getPlaceholderImageUrl(product, size = "400x400") {
+             const text = encodeURIComponent(product.image.replace(/-/g, ' '));
+             // Use a slightly lighter text color for better contrast on dark backgrounds
+             const textColor = htmlElement.classList.contains('dark') ? 'E5E7EB' : (product.textColor || 'FFFFFF'); // gray-200 for dark mode text
+             return `https://placehold.co/${size}/${product.color}/${textColor}?text=${text}&font=inter`;
+        }
+        const fallbackImageUrl = (size = "400x400") => `https://placehold.co/${size}/cccccc/ffffff?text=Not+Found&font=inter`;
+
+        // --- Dark Mode Functions ---
+
+        /** Applies the saved theme or system preference on load */
+        function applyInitialTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                htmlElement.classList.add('dark');
+                console.log("Applying Dark Theme");
+            } else {
+                htmlElement.classList.remove('dark');
+                console.log("Applying Light Theme");
+            }
+            // Ensure body class matches initial theme (needed because body classes are set directly now)
+             if (htmlElement.classList.contains('dark')) {
+                 document.body.classList.add('dark:bg-gray-900');
+                 document.body.classList.remove('bg-gray-50');
+             } else {
+                 document.body.classList.add('bg-gray-50');
+                 document.body.classList.remove('dark:bg-gray-900');
+             }
+        }
+
+        /** Toggles between light and dark mode */
+        function toggleDarkMode() {
+            htmlElement.classList.toggle('dark');
+            // Save the user's preference
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                console.log("Switched to Dark Theme, saving preference.");
+                 // Update body class
+                 document.body.classList.add('dark:bg-gray-900');
+                 document.body.classList.remove('bg-gray-50');
+            } else {
+                localStorage.setItem('theme', 'light');
+                console.log("Switched to Light Theme, saving preference.");
+                 // Update body class
+                 document.body.classList.add('bg-gray-50');
+                 document.body.classList.remove('dark:bg-gray-900');
+            }
+             // Re-render necessary components if visual update needed beyond CSS
+             // (e.g., placeholder images with different text colors)
+             if (currentView === 'home' || currentView === 'shop') {
+                 loadProducts(); // Reload product grid to update image text color potentially
+             } else if (currentView === 'detail') {
+                 // Re-render detail view to ensure all elements update
+                 const currentProductId = parseInt(detailAddToCartBtn.dataset.productId, 10);
+                 if(currentProductId) showProductDetail(currentProductId); // Re-render detail
+             } else if (currentView === 'cart') {
+                 renderCart(); // Re-render cart items
+             }
+        }
+
+        // --- Cart Functions ---
+
+        /** Updates the cart count display in the header. */
+        function updateCartCount() {
+            const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            cartCountElement.textContent = totalQuantity;
+        }
+
+        /** Adds a product to the cart or increments its quantity. */
+        function handleAddToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const existingItemIndex = cartItems.findIndex(item => item.productId === productId);
+            if (existingItemIndex > -1) {
+                cartItems[existingItemIndex].quantity += 1;
+            } else {
+                cartItems.push({ productId: productId, quantity: 1 });
+            }
+            updateCartCount();
+            showMessage(`${product.name} added to cart!`);
+            if (currentView === 'cart') renderCart();
+        }
+
+        /** Removes an item from the cart. */
+         function handleRemoveFromCart(productId) {
+             cartItems = cartItems.filter(item => item.productId !== productId);
+             updateCartCount();
+             renderCart();
+             showMessage("Item removed from cart.");
+         }
+
+         /** Updates the quantity of an item in the cart. */
+         function handleUpdateQuantity(productId, newQuantity) {
+             const itemIndex = cartItems.findIndex(item => item.productId === productId);
+             if (itemIndex > -1) {
+                 if (newQuantity > 0) {
+                     cartItems[itemIndex].quantity = newQuantity;
+                 } else {
+                     cartItems.splice(itemIndex, 1);
+                 }
+                 updateCartCount();
+                 renderCart();
+             }
+         }
+
+        /** Renders the items currently in the cartItems array. */
+        function renderCart() {
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '';
+                emptyCartMessage.classList.remove('hidden');
+                cartSummary.classList.add('hidden');
+                return;
+            }
+
+            emptyCartMessage.classList.add('hidden');
+            cartSummary.classList.remove('hidden');
+            cartItemsContainer.innerHTML = '';
+            let subtotal = 0;
+
+            cartItems.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) return;
+                subtotal += product.price * item.quantity;
+
+                const itemHTML = `
+                    <div class="cart-item flex items-center justify-between p-4 sm:p-6">
+                        <div class="flex items-center space-x-4">
+                            <img src="${getPlaceholderImageUrl(product, '80x80')}" alt="${product.name}" class="cart-item-img" onerror="this.onerror=null; this.src='${fallbackImageUrl('80x80')}';">
+                            <div>
+                                <h3 class="text-sm sm:text-base font-medium text-gray-900 dark:text-white">${product.name}</h3>
+                                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Price: $${product.price.toFixed(2)}</p>
+                                <button class="remove-item-btn text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 mt-1" data-product-id="${product.id}">Remove</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 sm:space-x-3">
+                             <label for="quantity-${product.id}" class="sr-only">Quantity</label>
+                             <input type="number" id="quantity-${product.id}" name="quantity-${product.id}" value="${item.quantity}" min="1" max="99"
+                                    class="quantity-input w-12 sm:w-16 border border-gray-300 dark:border-gray-600 rounded-md text-center text-sm py-1 bg-white dark:bg-gray-700 dark:text-white" data-product-id="${product.id}">
+                             <p class="text-sm sm:text-base font-medium text-gray-900 dark:text-white w-16 sm:w-20 text-right">$${(product.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+                cartItemsContainer.innerHTML += itemHTML;
+            });
+
+            cartSubtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+            cartTotalElement.textContent = `$${subtotal.toFixed(2)}`;
+        }
+
+
+        // --- Product Loading & Display Functions ---
+
+        /** Creates the HTML for a single product card. */
+        function createProductCardHTML(product) {
+            const placeholderImageUrl = getPlaceholderImageUrl(product);
+            const fallback = fallbackImageUrl();
+
+            // Note the added dark mode classes
+            return `
+                <article class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl dark:hover:shadow-blue-900/30 hover:-translate-y-1 flex flex-col cursor-pointer" data-product-id="${product.id}">
+                    <div class="relative pointer-events-none">
+                        <img src="${placeholderImageUrl}" alt="${product.name}" class="w-full h-48 sm:h-56 object-cover" onerror="this.onerror=null; this.src='${fallback}';">
+                        <span class="absolute top-2 left-2 bg-blue-500 dark:bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded">${product.category}</span>
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow pointer-events-none">
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 truncate">${product.name}</h3>
+                        <p class="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4 mt-auto">$${product.price.toFixed(2)}</p>
+                        <button class="add-to-cart-btn w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 pointer-events-auto" data-product-id="${product.id}"> Add to Cart </button>
+                    </div>
+                </article>
+            `;
+        }
+
+        /** Loads products into the main grid. */
+        function loadProducts() {
+            if (!productGrid) return;
+            productGrid.innerHTML = products.map(createProductCardHTML).join('');
+        }
+
+        /** Creates HTML for option buttons. */
+        function createOptionButtonsHTML(optionsArray, defaultOption) {
+            if (!optionsArray || optionsArray.length === 0) {
+                // Ensure disabled button also has appropriate dark mode styling if needed
+                return `<button class="option-btn selected" disabled>${defaultOption || 'N/A'}</button>`;
+            }
+            return optionsArray.map((option, index) =>
+                `<button class="option-btn ${index === 0 ? 'selected' : ''}">${option}</button>`
+            ).join('');
+        }
+
+        /** Shows the product detail view. */
+        function showProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                console.error("Product not found:", productId);
+                switchView('home');
+                return;
+            }
+
+            detailImage.src = getPlaceholderImageUrl(product, "600x450");
+            detailImage.alt = product.name;
+            detailImage.onerror = () => { detailImage.src = fallbackImageUrl("600x450"); };
+            detailCategory.textContent = product.category;
+            detailName.textContent = product.name;
+            detailDescription.textContent = product.description || "No description available.";
+            detailPrice.textContent = `$${product.price.toFixed(2)}`;
+            detailAddToCartBtn.dataset.productId = product.id;
+
+            detailColorsContainer.innerHTML = createOptionButtonsHTML(product.options?.colors, 'Default');
+            detailSizesContainer.innerHTML = createOptionButtonsHTML(product.options?.sizes, 'One Size');
+
+            const similarProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+            similarProductsGrid.innerHTML = similarProducts.length > 0
+                ? similarProducts.map(createProductCardHTML).join('')
+                : '<p class="text-gray-500 dark:text-gray-400 col-span-full">No similar products found.</p>';
+
+            switchView('detail');
+        }
+
+        // --- View Switching Function ---
+
+        /** Switches the visible page section. */
+        function switchView(viewName) {
+            console.log("Switching view to:", viewName);
+            currentView = viewName;
+
+            Object.values(pageSections).forEach(section => {
+                if (section && !section.classList.contains('hidden')) {
+                     section.classList.add('hidden');
+                }
+            });
+
+            const targetSection = pageSections[viewName];
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                window.scrollTo(0, 0);
+                 if (viewName === 'cart') renderCart();
+                 updateActiveNavLinks(viewName);
+            } else {
+                console.error("Target view section not found:", viewName);
+                pageSections.home.classList.remove('hidden'); // Fallback to home
+                updateActiveNavLinks('home');
+            }
+        }
+
+        /** Updates the 'active' class on navigation links. */
+        function updateActiveNavLinks(activeViewName) {
+             const targetName = activeViewName === 'shop' ? 'home' : activeViewName;
+             navLinks.forEach(link => {
+                 const linkTarget = link.dataset.target;
+                 link.classList.toggle('active', linkTarget === targetName);
+             });
+        }
+
+        // --- Mobile Menu ---
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            applyInitialTheme(); // Apply theme on initial load *before* loading content
+            loadProducts();
+            updateCartCount();
+            setTimeout(() => { document.body.classList.add('loaded'); }, 100); // Fade in body
+
+            // Dark Mode Toggle Listener
+            darkModeToggle.addEventListener('click', toggleDarkMode);
+
+            // Main Event Delegation for Clicks
+            document.body.addEventListener('click', (event) => {
+                const target = event.target;
+
+                // Navigation Triggers
+                const navTrigger = target.closest('.nav-trigger');
+                if (navTrigger) {
+                    event.preventDefault();
+                    const targetView = navTrigger.dataset.target;
+                    if (targetView) {
+                        switchView(targetView);
+                        if (mobileMenu.contains(navTrigger) && !mobileMenu.classList.contains('hidden')) {
+                             toggleMobileMenu();
+                        }
+                    }
+                    return;
+                }
+
+                // Add to Cart Button
+                if (target.matches('.add-to-cart-btn')) {
+                    const productId = parseInt(target.dataset.productId, 10);
+                    if (productId) handleAddToCart(productId);
+                    return;
+                }
+
+                // Product Card Click -> Show Detail
+                const clickedCard = target.closest('.product-card');
+                if (clickedCard && !target.closest('button')) {
+                    const productId = parseInt(clickedCard.dataset.productId, 10);
+                    if (productId) showProductDetail(productId);
+                    return;
+                }
+
+                // Remove Item from Cart
+                if (target.matches('.remove-item-btn')) {
+                    const productId = parseInt(target.dataset.productId, 10);
+                    if (productId) handleRemoveFromCart(productId);
+                    return;
+                }
+
+                // Mobile Menu Toggle
+                if (target === mobileMenuButton || target.closest('#mobile-menu-button')) {
+                    toggleMobileMenu();
+                    return;
+                }
+
+                // Option Button Click
+                 const optionBtn = target.closest('.option-btn');
+                 if (optionBtn && !optionBtn.disabled) {
+                     const container = optionBtn.parentElement;
+                     [...container.children].forEach(btn => btn.classList.remove('selected'));
+                     optionBtn.classList.add('selected');
+                     // In a real app, you'd store the selected option state here
+                     return;
+                 }
+            });
+
+             // Cart Quantity Changes
+             cartItemsContainer.addEventListener('change', (event) => {
+                 if (event.target.matches('.quantity-input')) {
+                     const productId = parseInt(event.target.dataset.productId, 10);
+                     const newQuantity = parseInt(event.target.value, 10);
+                     if (productId && !isNaN(newQuantity)) {
+                         handleUpdateQuantity(productId, newQuantity);
+                     }
+                 }
+             });
+
+            // Initial View Setup
+            switchView('home');
+
+        }); // End DOMContentLoaded
+
+    </script>
+
+</body>
+</html>
