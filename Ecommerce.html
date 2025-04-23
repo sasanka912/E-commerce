@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
-        // Configure Tailwind for dark mode using the 'class' strategy
         tailwind.config = {
           darkMode: 'class', // Enable class-based dark mode
           theme: {
@@ -17,7 +16,6 @@
               fontFamily: {
                 sans: ['Inter', 'sans-serif'],
               },
-              // Add any other theme customizations here
             }
           }
         }
@@ -27,52 +25,50 @@
         html {
              scroll-behavior: smooth;
         }
-        /* Base body styles - Background colors are now handled directly on the body tag */
         body {
             font-family: 'Inter', sans-serif;
             opacity: 0;
-            transition: opacity 0.7s ease-in-out, background-color 0.3s ease-in-out; /* Keep transition */
+            transition: opacity 0.7s ease-in-out, background-color 0.3s ease-in-out; 
         }
         body.loaded {
             opacity: 1;
         }
-        /* Ensure images cover their container */
         .product-card img, #product-detail-image, .cart-item-img {
             aspect-ratio: 1 / 1;
             object-fit: cover;
         }
         .cart-item-img {
-            width: 80px; /* Fixed width for cart images */
+            width: 80px; 
             height: 80px;
-            border-radius: 4px; /* Slightly rounded */
+            border-radius: 4px; 
         }
         #product-detail-image {
              aspect-ratio: 4 / 3;
              max-height: 500px;
         }
 
-        /* Custom scrollbar */
+       
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track {
-            background: #f1f1f1; /* Light mode track */
-            @apply dark:bg-gray-700; /* Dark mode track */
+            background: #f1f1f1; 
+            @apply dark:bg-gray-700; 
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; /* gray-300 - Light mode thumb */
-             @apply dark:bg-gray-500; /* Dark mode thumb */
+            background: #cbd5e1;
+             @apply dark:bg-gray-500; 
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; /* gray-400 - Light mode hover */
-             @apply dark:bg-gray-400; /* Dark mode hover */
+            background: #94a3b8; 
+             @apply dark:bg-gray-400;
         }
 
-        /* Navigation link hover effect */
+      
         .nav-link {
             position: relative;
             transition: color 0.3s ease;
-            @apply text-gray-600 dark:text-gray-300; /* Base colors */
+            @apply text-gray-600 dark:text-gray-300; 
         }
         .nav-link::after {
             content: '';
@@ -82,7 +78,7 @@
             bottom: -4px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #3b82f6; /* blue-500 */
+            background-color: #3b82f6;
             transition: width 0.3s ease;
         }
         .nav-link:hover {
@@ -90,34 +86,34 @@
         }
         .nav-link:hover::after { width: 100%; }
         .nav-link.active {
-            @apply text-blue-500 dark:text-blue-400 font-semibold; /* Style for active link */
+            @apply text-blue-500 dark:text-blue-400 font-semibold;
         }
         .nav-link.active::after {
             width: 60%;
-            background-color: #3b82f6; /* blue-500 */
+            background-color: #3b82f6;
             @apply dark:bg-blue-400;
         }
 
 
-        /* Button styles */
+        
         .add-to-cart-btn, .checkout-btn, .action-btn {
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
         .add-to-cart-btn:hover, .checkout-btn:hover, .action-btn:hover {
             transform: translateY(-2px);
-            filter: brightness(1.1); /* Slightly brighten on hover */
+            filter: brightness(1.1);
         }
         .add-to-cart-btn:active, .checkout-btn:active, .action-btn:active {
             transform: translateY(0px);
         }
 
-        /* Message box */
+        
         #message-box {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(51, 65, 85, 0.9); /* slate-700 with opacity */
+            background-color: rgba(51, 65, 85, 0.9); 
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -126,12 +122,12 @@
             visibility: hidden;
             transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
             transform: translateX(-50%) translateY(20px);
-            /* Dark mode specific styling for message box */
+
             @apply dark:bg-opacity-90 dark:bg-gray-200 dark:text-gray-900;
         }
         #message-box.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-        /* Section transition */
+        
         .page-section {
             transition: opacity 0.4s ease-in-out, max-height 0.5s ease-in-out;
             overflow: hidden;
@@ -146,32 +142,32 @@
              max-height: 10000px; /* Use a large value */
         }
 
-        /* Option button styles */
+        
         .option-btn {
-            border: 1px solid #d1d5db; /* gray-300 */
+            border: 1px solid #d1d5db; 
             padding: 6px 12px; border-radius: 6px; cursor: pointer;
             transition: all 0.2s ease; font-size: 0.875rem;
-            @apply text-gray-700 dark:border-gray-600 dark:text-gray-300; /* Added light mode text color */
+            @apply text-gray-700 dark:border-gray-600 dark:text-gray-300;
         }
         .option-btn:hover {
-            border-color: #3b82f6; /* blue-500 */
-            background-color: #eff6ff; /* blue-50 */
+            border-color: #3b82f6; 
+            background-color: #eff6ff; 
             @apply dark:border-blue-400 dark:bg-gray-700 dark:text-gray-100;
         }
         .option-btn.selected {
-            border-color: #3b82f6; /* blue-500 */
-            background-color: #3b82f6; /* blue-500 */
+            border-color: #3b82f6; 
+            background-color: #3b82f6; 
             color: white; font-weight: 500;
             @apply dark:border-blue-400 dark:bg-blue-500 dark:text-white;
         }
 
-        /* Cart item styling */
+       
         .cart-item + .cart-item {
-            border-top: 1px solid #e5e7eb; /* gray-200 */
+            border-top: 1px solid #e5e7eb; 
             @apply dark:border-gray-700;
         }
 
-        /* Dark mode toggle button specific styles */
+       
         #dark-mode-toggle svg {
             transition: transform 0.3s ease;
         }
@@ -409,7 +405,7 @@
     <div id="message-box">Item added to cart!</div>
 
     <script>
-        // --- Product Data (Same as before) ---
+       
         const products = [
              { id: 1, name: "Wireless Headphones", price: 79.99, image: "headphones-wireless", category: "Electronics", color: "A78BFA", textColor: "FFFFFF", description: "Immersive sound quality with noise cancellation. Long-lasting battery life for all-day listening.", options: { colors: ["Purple", "Black", "White"] } },
              { id: 2, name: "Smart Watch Series 7", price: 349.00, image: "smart-watch", category: "Electronics", color: "3B82F6", textColor: "FFFFFF", description: "Track your fitness, stay connected, and monitor your health with the latest smart watch technology.", options: { colors: ["Blue", "Midnight", "Starlight"], sizes: ["41mm", "45mm"] } },
@@ -445,7 +441,7 @@
              { id: 32, name: "Chef Knife 8-Inch", price: 59.00, image: "chef-knife", category: "Home Goods", color: "4B5563", textColor: "FFFFFF", description: "High-carbon stainless steel chef's knife. Sharp, durable, and well-balanced for all kitchen tasks.", options: {} },
          ];
 
-        // --- DOM Elements ---
+       
         const productGrid = document.getElementById('product-grid');
         const cartCountElement = document.getElementById('cart-count');
         const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -454,7 +450,6 @@
         const darkModeToggle = document.getElementById('dark-mode-toggle'); // Dark mode button
         const htmlElement = document.documentElement; // Reference to <html> element
 
-        // Page Sections / Views
         const pageSections = {
             home: document.getElementById('home-view'),
             detail: document.getElementById('product-detail-section'),
@@ -465,7 +460,7 @@
         };
         pageSections.shop = pageSections.home; // Alias for 'shop' view
 
-        // Detail View Elements
+       
         const backToShopBtn = document.getElementById('back-to-shop-btn');
         const detailImage = document.getElementById('product-detail-image');
         const detailCategory = document.getElementById('product-detail-category');
@@ -477,31 +472,28 @@
         const detailAddToCartBtn = document.getElementById('detail-add-to-cart-btn');
         const similarProductsGrid = document.getElementById('similar-products-grid');
 
-        // Cart View Elements
+       
         const cartItemsContainer = document.getElementById('cart-items-container');
         const emptyCartMessage = document.getElementById('empty-cart-message');
         const cartSummary = document.getElementById('cart-summary');
         const cartSubtotalElement = document.getElementById('cart-subtotal');
         const cartTotalElement = document.getElementById('cart-total');
 
-        // Navigation Links
+     
         const navTriggers = document.querySelectorAll('.nav-trigger');
         const navLinks = document.querySelectorAll('.nav-link');
 
-        // --- State ---
-        let cartItems = []; // Array to hold { productId, quantity }
+     
+        let cartItems = [];
         let currentView = 'home';
 
-        // --- Utility Functions ---
-
-        /** Displays a short message to the user. */
         function showMessage(message) {
             messageBox.textContent = message;
             messageBox.classList.add('show');
             setTimeout(() => { messageBox.classList.remove('show'); }, 3000);
         }
 
-        /** Generates placeholder image URL. */
+       
         function getPlaceholderImageUrl(product, size = "400x400") {
              const text = encodeURIComponent(product.image.replace(/-/g, ' '));
              // Use a slightly lighter text color for better contrast on dark backgrounds
@@ -510,9 +502,7 @@
         }
         const fallbackImageUrl = (size = "400x400") => `https://placehold.co/${size}/cccccc/ffffff?text=Not+Found&font=inter`;
 
-        // --- Dark Mode Functions ---
-
-        /** Applies the saved theme or system preference on load */
+  
         function applyInitialTheme() {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -524,7 +514,7 @@
                 htmlElement.classList.remove('dark');
                 console.log("Applying Light Theme");
             }
-            // Ensure body class matches initial theme (needed because body classes are set directly now)
+       
              if (htmlElement.classList.contains('dark')) {
                  document.body.classList.add('dark:bg-gray-900');
                  document.body.classList.remove('bg-gray-50');
@@ -534,7 +524,7 @@
              }
         }
 
-        /** Toggles between light and dark mode */
+  
         function toggleDarkMode() {
             htmlElement.classList.toggle('dark');
             // Save the user's preference
@@ -551,8 +541,7 @@
                  document.body.classList.add('bg-gray-50');
                  document.body.classList.remove('dark:bg-gray-900');
             }
-             // Re-render necessary components if visual update needed beyond CSS
-             // (e.g., placeholder images with different text colors)
+           
              if (currentView === 'home' || currentView === 'shop') {
                  loadProducts(); // Reload product grid to update image text color potentially
              } else if (currentView === 'detail') {
@@ -564,15 +553,13 @@
              }
         }
 
-        // --- Cart Functions ---
-
-        /** Updates the cart count display in the header. */
+      
         function updateCartCount() {
             const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
             cartCountElement.textContent = totalQuantity;
         }
 
-        /** Adds a product to the cart or increments its quantity. */
+     
         function handleAddToCart(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -587,7 +574,7 @@
             if (currentView === 'cart') renderCart();
         }
 
-        /** Removes an item from the cart. */
+     
          function handleRemoveFromCart(productId) {
              cartItems = cartItems.filter(item => item.productId !== productId);
              updateCartCount();
@@ -595,7 +582,7 @@
              showMessage("Item removed from cart.");
          }
 
-         /** Updates the quantity of an item in the cart. */
+ 
          function handleUpdateQuantity(productId, newQuantity) {
              const itemIndex = cartItems.findIndex(item => item.productId === productId);
              if (itemIndex > -1) {
@@ -609,7 +596,7 @@
              }
          }
 
-        /** Renders the items currently in the cartItems array. */
+  
         function renderCart() {
             if (cartItems.length === 0) {
                 cartItemsContainer.innerHTML = '';
@@ -654,14 +641,12 @@
         }
 
 
-        // --- Product Loading & Display Functions ---
-
-        /** Creates the HTML for a single product card. */
+       
         function createProductCardHTML(product) {
             const placeholderImageUrl = getPlaceholderImageUrl(product);
             const fallback = fallbackImageUrl();
 
-            // Note the added dark mode classes
+         
             return `
                 <article class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl dark:hover:shadow-blue-900/30 hover:-translate-y-1 flex flex-col cursor-pointer" data-product-id="${product.id}">
                     <div class="relative pointer-events-none">
@@ -677,13 +662,13 @@
             `;
         }
 
-        /** Loads products into the main grid. */
+      
         function loadProducts() {
             if (!productGrid) return;
             productGrid.innerHTML = products.map(createProductCardHTML).join('');
         }
 
-        /** Creates HTML for option buttons. */
+     
         function createOptionButtonsHTML(optionsArray, defaultOption) {
             if (!optionsArray || optionsArray.length === 0) {
                 // Ensure disabled button also has appropriate dark mode styling if needed
@@ -694,7 +679,7 @@
             ).join('');
         }
 
-        /** Shows the product detail view. */
+     
         function showProductDetail(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) {
@@ -723,9 +708,8 @@
             switchView('detail');
         }
 
-        // --- View Switching Function ---
+     
 
-        /** Switches the visible page section. */
         function switchView(viewName) {
             console.log("Switching view to:", viewName);
             currentView = viewName;
@@ -749,7 +733,7 @@
             }
         }
 
-        /** Updates the 'active' class on navigation links. */
+        
         function updateActiveNavLinks(activeViewName) {
              const targetName = activeViewName === 'shop' ? 'home' : activeViewName;
              navLinks.forEach(link => {
@@ -758,26 +742,26 @@
              });
         }
 
-        // --- Mobile Menu ---
+    
         function toggleMobileMenu() {
             mobileMenu.classList.toggle('hidden');
         }
 
-        // --- Event Listeners ---
+       
         document.addEventListener('DOMContentLoaded', () => {
             applyInitialTheme(); // Apply theme on initial load *before* loading content
             loadProducts();
             updateCartCount();
             setTimeout(() => { document.body.classList.add('loaded'); }, 100); // Fade in body
 
-            // Dark Mode Toggle Listener
+         
             darkModeToggle.addEventListener('click', toggleDarkMode);
 
-            // Main Event Delegation for Clicks
+           
             document.body.addEventListener('click', (event) => {
                 const target = event.target;
 
-                // Navigation Triggers
+             
                 const navTrigger = target.closest('.nav-trigger');
                 if (navTrigger) {
                     event.preventDefault();
@@ -791,14 +775,14 @@
                     return;
                 }
 
-                // Add to Cart Button
+              
                 if (target.matches('.add-to-cart-btn')) {
                     const productId = parseInt(target.dataset.productId, 10);
                     if (productId) handleAddToCart(productId);
                     return;
                 }
 
-                // Product Card Click -> Show Detail
+               
                 const clickedCard = target.closest('.product-card');
                 if (clickedCard && !target.closest('button')) {
                     const productId = parseInt(clickedCard.dataset.productId, 10);
@@ -806,31 +790,30 @@
                     return;
                 }
 
-                // Remove Item from Cart
+              
                 if (target.matches('.remove-item-btn')) {
                     const productId = parseInt(target.dataset.productId, 10);
                     if (productId) handleRemoveFromCart(productId);
                     return;
                 }
 
-                // Mobile Menu Toggle
+              
                 if (target === mobileMenuButton || target.closest('#mobile-menu-button')) {
                     toggleMobileMenu();
                     return;
                 }
 
-                // Option Button Click
                  const optionBtn = target.closest('.option-btn');
                  if (optionBtn && !optionBtn.disabled) {
                      const container = optionBtn.parentElement;
                      [...container.children].forEach(btn => btn.classList.remove('selected'));
                      optionBtn.classList.add('selected');
-                     // In a real app, you'd store the selected option state here
+                     
                      return;
                  }
             });
 
-             // Cart Quantity Changes
+           
              cartItemsContainer.addEventListener('change', (event) => {
                  if (event.target.matches('.quantity-input')) {
                      const productId = parseInt(event.target.dataset.productId, 10);
@@ -841,10 +824,10 @@
                  }
              });
 
-            // Initial View Setup
+            
             switchView('home');
 
-        }); // End DOMContentLoaded
+        });
 
     </script>
 
